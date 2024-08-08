@@ -172,6 +172,15 @@ static class Launcher
         Console.WriteLine();
         Console.ResetColor();
 
+        if (!(clientVersion is (9, 2, 7, 45745)))
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine("This version of the launcher is currently only compatible with the 9.2.7.45745 client.");
+            Console.ResetColor();
+
+            return false;
+        }
+
         // Assign the region and product dependent version url to check it's online status.
         var versionUrl = commandLineResult.GetValueForOption(LaunchOptions.VersionUrl)
             ?? Patches.Common.GetVersionUrl(clientVersion.Build, commandLineResult.GetValueForOption(LaunchOptions.CdnRegion),
