@@ -60,6 +60,17 @@ class ModLoader
         return true;
     }
 
+    public static void InjectHotReloadDLL(nint processHandle, string dllName)
+    {
+        var loadLibraryAddr = NativeWindows.GetProcAddress(NativeWindows.GetModuleHandle("kernel32.dll"), "LoadLibraryA");
+
+        IntPtr allocMemAddress = NativeWindows.VirtualAllocEx(processHandle, IntPtr.Zero, (uint)((dllName.Length + 1) * Unsafe.SizeOf<char>()), 0x3000, 4);
+
+        NativeWindows.WriteProcessMemory(processHandle, allocMemAddress, Encoding.ASCII.GetBytes(dllName), (dllName.Length + 1) * Unsafe.SizeOf<char>(), out var bytesWritten);
+
+        NativeWindows.CreateRemoteThread(processHandle, IntPtr.Zero, 0, loadLibraryAddr, allocMemAddress, 0, IntPtr.Zero);
+    }
+
     public static (nint idAlloc, nint stringAlloc) LoadFileMappings(nint processHandle)
     {
         var loadedMappings = new List<(byte[] fileId, byte[] path, uint StringPos)>();

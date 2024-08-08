@@ -32,7 +32,7 @@
         <IlcFoldIdenticalMethodBodies>true</IlcFoldIdenticalMethodBodies>
         <IlcTrimMetadata>true</IlcTrimMetadata>
         <IlcOptimizationPreference>Speed</IlcOptimizationPreference>
-        <GenerateRuntimeConfigurationFiles>false</GenerateRuntimeConfigurationFiles>
+        <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(Configuration)'=='Debug'">

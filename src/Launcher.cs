@@ -277,6 +277,18 @@ static class Launcher
                         }, CancellationTokenSource.Token);
                     }
 
+                    // Inject the terrain hot loading DLL if the client is 9.2.7 and it exists
+                    if (clientVersion is (9, 2, 7, 45745) && File.Exists(Path.Combine(Path.GetDirectoryName(appPath), "memoryframework.dll")))
+                    {
+                        if (IsDebugBuild())
+                            Console.Write("Injecting hot reload DLL...");
+
+                        ModLoader.InjectHotReloadDLL(processInfo.ProcessHandle, "memoryframework.dll");
+
+                        if (IsDebugBuild())
+                            Console.WriteLine("done.");
+                    }
+
                     NativeWindows.NtResumeProcess(processInfo.ProcessHandle);
 
                     // Enable anti crash in dev mode, custom file mode or static auth seed mode.

@@ -35,6 +35,15 @@ static class NativeWindows
     [DllImport("kernel32.dll", EntryPoint = "FlushInstructionCache", SetLastError = true)]
     public static extern bool FlushInstructionCache(nint hProcess, nint lpBaseAddress, uint dwSize);
 
+    [DllImport("kernel32.dll")]
+    public static extern IntPtr CreateRemoteThread(IntPtr hProcess, IntPtr lpThreadAttributes, uint dwStackSize, IntPtr lpStartAddress, IntPtr lpParameter, uint dwCreationFlags, IntPtr lpThreadId);
+
+    [DllImport("kernel32.dll", CharSet = CharSet.Auto)]
+    public static extern IntPtr GetModuleHandle(string lpModuleName);
+
+    [DllImport("kernel32.dll", CharSet = CharSet.Ansi, ExactSpelling = true, SetLastError = true)]
+    public static extern IntPtr GetProcAddress(IntPtr hModule, string procName);
+
     /// ntdll.dll
     // Process
     [DllImport("ntdll.dll", SetLastError = true)]
