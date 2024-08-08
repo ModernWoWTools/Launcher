@@ -295,6 +295,8 @@ static class Launcher
                         {
                             Task.WaitAll(new[]
                             {
+                                memory.QueuePatch(Patterns.Windows.ProtocolChange, Patches.Windows.ShortJump, "Protocol Change"),
+                                memory.QueuePatch(Patterns.Windows.ConnectTo, Patches.Windows.ShortJump, "ConnectTo"),
                                 memory.QueuePatch(Patterns.Windows.CertBundle, Patches.Windows.CertBundle, "CertBundle"),
                                 memory.QueuePatch(Patterns.Windows.CertCommonName, Patches.Windows.CertCommonName, "CertCommonName", 5)
                             }, CancellationTokenSource.Token);
