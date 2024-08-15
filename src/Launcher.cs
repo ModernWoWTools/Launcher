@@ -278,12 +278,12 @@ static class Launcher
                     }
 
                     // Inject the terrain hot loading DLL if the client is 9.2.7 and it exists
-                    if (clientVersion is (9, 2, 7, 45745) && File.Exists(Path.Combine(Path.GetDirectoryName(appPath), "memoryframework.dll")))
+                    if (clientVersion is (9, 2, 7, 45745) && File.Exists(Path.Combine(Path.GetDirectoryName(appPath), "arbiterdll.dll")))
                     {
                         if (IsDebugBuild())
                             Console.Write("Injecting hot reload DLL...");
 
-                        ModLoader.InjectHotReloadDLL(processInfo.ProcessHandle, "memoryframework.dll");
+                        ModLoader.InjectHotReloadDLL(processInfo.ProcessHandle, "arbiterdll.dll");
 
                         if (IsDebugBuild())
                             Console.WriteLine("done.");
