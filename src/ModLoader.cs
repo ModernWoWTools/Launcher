@@ -6,6 +6,34 @@ namespace Arctium.WoW.Launcher;
 class ModLoader
 {
     static readonly HashSet<uint> _loadedFileIds = new();
+    const uint CascOpenVerifyFunction = 0x2D8590;
+
+    public static bool HookOpenVerify(WinMemory memory, nint processHandle)
+    {
+        var hookCode = new byte[]
+        {
+            0xB8, 0x01, 0x00, 0x00, 0x00, // mov eax, 1
+            0xC3                          // ret
+        };
+
+        var hookAddress = NativeWindows.VirtualAllocEx(processHandle, nint.Zero, (uint)hookCode.Length, 0x00001000, (uint)MemProtection.ExecuteReadWrite);
+
+        memory.Write(hookAddress, hookCode);
+
+        var jmpInstruction = new byte[] { 0x48, 0xB8, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0xE0, 0x90 };
+
+        Buffer.BlockCopy(BitConverter.GetBytes((ulong)hookAddress), 0, jmpInstruction, 2, 8);
+
+        var targetAddress = 0x2D8590;
+
+        var originalBytes = memory.Read(memory.BaseAddress + targetAddress, 13);
+
+        memory.QueuePatch(targetAddress, jmpInstruction, "OpenVerifyHook");
+
+        memory.Write(hookAddress + hookCode.Length, originalBytes.Concat(jmpInstruction).ToArray());
+
+        return true;
+    }
 
     public static bool HookClient(WinMemory memory, nint processHandle, nint idAlloc, nint stringAlloc)
     {

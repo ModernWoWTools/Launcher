@@ -355,6 +355,9 @@ static class Launcher
                     {
                         if (!ModLoader.HookClient(memory, processInfo.ProcessHandle, idAlloc, stringAlloc))
                             return false;
+
+                        // Fix by BinarySpace/Helnesis for custom M2/WMO files.
+                        ModLoader.HookOpenVerify(memory, processInfo.ProcessHandle);
                     }
 #endif
 
