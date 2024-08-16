@@ -277,13 +277,16 @@ static class Launcher
                         }, CancellationTokenSource.Token);
                     }
 
+                    var usingArbiter = false;
                     // Inject the terrain hot loading DLL if the client is 9.2.7 and it exists
                     if (clientVersion is (9, 2, 7, 45745) && File.Exists(Path.Combine(Path.GetDirectoryName(appPath), "arbiterdll.dll")))
                     {
                         if (IsDebugBuild())
-                            Console.Write("Injecting hot reload DLL...");
+                            Console.Write("Injecting Arbiter DLL...");
 
                         ModLoader.InjectHotReloadDLL(processInfo.ProcessHandle, "arbiterdll.dll");
+
+                        usingArbiter = true;
 
                         if (IsDebugBuild())
                             Console.WriteLine("done.");
@@ -338,26 +341,33 @@ static class Launcher
                         }, CancellationTokenSource.Token);
                     }
 #if CUSTOM_FILES
-                    Task.WaitAll(new[]
+                    if (!usingArbiter)
                     {
-                        (clientVersion is (10, _, _, _))
-                            ? memory.QueuePatch(Patterns.Windows.LoadByFileIdAlternate, Patches.Windows.NoJump, "LoadByFileId", 3)
-                            : memory.QueuePatch(Patterns.Windows.LoadByFileId, Patches.Windows.NoJump, "LoadByFileId", 6),
+                        Task.WaitAll(new[]
+                        {
+                            (clientVersion is (10, _, _, _))
+                                ? memory.QueuePatch(Patterns.Windows.LoadByFileIdAlternate, Patches.Windows.NoJump, "LoadByFileId", 3)
+                                : memory.QueuePatch(Patterns.Windows.LoadByFileId, Patches.Windows.NoJump, "LoadByFileId", 6),
 
-                        (clientVersion is (10, _, _, _))
-                            ? memory.QueuePatch(Patterns.Windows.LoadByFilePathAlternate, Patches.Windows.NoJump, "LoadByFilePath", 3)
-                            : memory.QueuePatch(Patterns.Windows.LoadByFilePath, Patches.Windows.NoJump, "LoadByFilePath", 3)
-                    }, CancellationTokenSource.Token);
+                            (clientVersion is (10, _, _, _))
+                                ? memory.QueuePatch(Patterns.Windows.LoadByFilePathAlternate, Patches.Windows.NoJump, "LoadByFilePath", 3)
+                                : memory.QueuePatch(Patterns.Windows.LoadByFilePath, Patches.Windows.NoJump, "LoadByFilePath", 3)
+                        }, CancellationTokenSource.Token);
 
-                    var (idAlloc, stringAlloc) = ModLoader.LoadFileMappings(processInfo.ProcessHandle);
+                        var (idAlloc, stringAlloc) = ModLoader.LoadFileMappings(processInfo.ProcessHandle);
 
-                    if (idAlloc != 0 && stringAlloc != 0)
+                        if (idAlloc != 0 && stringAlloc != 0)
+                        {
+                            if (!ModLoader.HookClient(memory, processInfo.ProcessHandle, idAlloc, stringAlloc))
+                                return false;
+
+                            // Fix by BinarySpace/Helnesis for custom M2/WMO files.
+                            ModLoader.HookOpenVerify(memory, processInfo.ProcessHandle);
+                        }
+                    }
+                    else
                     {
-                        if (!ModLoader.HookClient(memory, processInfo.ProcessHandle, idAlloc, stringAlloc))
-                            return false;
-
-                        // Fix by BinarySpace/Helnesis for custom M2/WMO files.
-                        ModLoader.HookOpenVerify(memory, processInfo.ProcessHandle);
+                        Console.WriteLine("Skipping Arctium file loading, disabled when using Arbiter.");
                     }
 #endif
 
