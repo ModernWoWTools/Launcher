@@ -280,17 +280,7 @@ static class Launcher
                     var usingArbiter = false;
                     // Inject the terrain hot loading DLL if the client is 9.2.7 and it exists
                     if (clientVersion is (9, 2, 7, 45745) && File.Exists(Path.Combine(Path.GetDirectoryName(appPath), "arbiterdll.dll")))
-                    {
-                        if (IsDebugBuild())
-                            Console.Write("Injecting Arbiter DLL...");
-
-                        ModLoader.InjectHotReloadDLL(processInfo.ProcessHandle, "arbiterdll.dll");
-
                         usingArbiter = true;
-
-                        if (IsDebugBuild())
-                            Console.WriteLine("done.");
-                    }
 
                     NativeWindows.NtResumeProcess(processInfo.ProcessHandle);
 
@@ -364,14 +354,22 @@ static class Launcher
                             // Fix by BinarySpace/Helnesis for custom M2/WMO files.
                             ModLoader.HookOpenVerify(memory, processInfo.ProcessHandle);
                         }
+
+                        NativeWindows.NtResumeProcess(processInfo.ProcessHandle); // Only resume the process if we are not using Arbiter as that already resumes for us.
                     }
                     else
                     {
+                        if (IsDebugBuild())
+                            Console.Write("Injecting Arbiter DLL...");
+
+                        ModLoader.InjectHotReloadDLL(processInfo.ProcessHandle, "arbiterdll.dll");
+
+                        if (IsDebugBuild())
+                            Console.WriteLine("done.");
+
                         Console.WriteLine("Skipping Arctium file loading, disabled when using Arbiter.");
                     }
 #endif
-
-                    NativeWindows.NtResumeProcess(processInfo.ProcessHandle);
 
                     if (memory.RemapAndPatch(antiCrash))
                     {
