@@ -111,13 +111,14 @@ static class Helpers
             var result = await httpClient.GetAsync(url);
 
             if (!result.IsSuccessStatusCode)
-                Console.WriteLine($"{url} not reachable. Falling back to {fallbackUrl}");
+                Console.WriteLine($"{url} not reachable (HTTP " + result.StatusCode + "). Falling back to {fallbackUrl}");
 
             return result.IsSuccessStatusCode;
         }
-        catch (Exception)
+        catch (Exception e)
         {
             Console.WriteLine($"{url} not reachable. Falling back to {fallbackUrl}");
+            Console.WriteLine("Exception: " + e.Message + "\n" + e.StackTrace);
 
             return false;
         }
